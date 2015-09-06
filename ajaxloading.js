@@ -32,7 +32,9 @@
             if (!data) {
                 throw new ex('InstanceError', 'This object has not been initialised');
             }
-            this.show().animate({opacity: 1}, data.s.fadespeed);
+            if (!this.is(':visible')) {
+                this.show().animate({opacity: 1}, data.s.fadespeed);
+            }
         },
         hide: function () {
             var T = this,
@@ -40,9 +42,11 @@
             if (!data) {
                 throw new ex('InstanceError', 'This object has not been initialised');
             }
-            this.animate({opacity: 0}, data.s.fadespeed, 'swing', function () {
-                T.hide();
-            });
+            if (this.is(':visible')) {
+                this.animate({opacity: 0}, data.s.fadespeed, 'swing', function () {
+                    T.hide();
+                });
+            }
         },
         updateProgress: function (e) {
             var T = this;
