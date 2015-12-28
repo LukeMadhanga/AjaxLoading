@@ -71,12 +71,12 @@
      */
     function ex(exceptiontype, message) {
         return {
-            name: 'CarregForm::' + exceptiontype,
+            name: 'AjaxLoading::' + exceptiontype,
             level: "Cannot continue",
             message: message,
             htmlMessage: message,
             toString: function() {
-                return ['Error: CarregForm::', exceptiontype, ' - ', message].join('');
+                return ['Error: AjaxLoading::', exceptiontype, ' - ', message].join('');
             }
         };
     }
