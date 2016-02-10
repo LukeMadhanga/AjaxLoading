@@ -1,5 +1,7 @@
 (function ($, count) {
     
+    "use strict";
+    
     var methods = {
         init: function (opts) {
             var T = this;
@@ -9,81 +11,62 @@
                     $(this).ajaxLoading(opts);
                 });
                 return T;
-            } else if (!T.length || T.data('ajaxloadingdata')) {
-                // There are no objects or
-                // This object has already been instantiated
+            } else if (!T.length || T.data('ajaxloading')) {
+                // We have no objects return
                 return T;
             }
             var data = {
-                instancecount: ++count,
+                instanceid: ++count,
                 s: $.extend({
-                    fadespeed: 500,
-                    updateprogress: false
+                    animateSpeed: 200,
+                    animateEase: 'swing'
                 }, opts)
             };
-            
-            T.append('<div class="ajloader"></div><div class="ajloader-overlay"></div>');
-            
-            T.data('ajaxloadingdata', data).addClass('ajloaderparent');
-            return T;
+            T.append('<div class="ajax-loading-bg"></div><div class="ajaxloading-loader"></div>').addClass('ajaxloading');
+            T.data({ajaxloading: data});
         },
+        /**
+         * Show the loader
+         */
         show: function () {
-            var data = this.data('ajaxloadingdata');
-            if (!data) {
-                throw new ex('InstanceError', 'This object has not been initialised');
-            }
-            if (!this.is(':visible')) {
-                this.show().animate({opacity: 1}, data.s.fadespeed);
-            }
-        },
-        hide: function () {
-            var T = this,
-            data = this.data('ajaxloadingdata');
-            if (!data) {
-                throw new ex('InstanceError', 'This object has not been initialised');
-            }
-            if (this.is(':visible')) {
-                this.animate({opacity: 0}, data.s.fadespeed, 'swing', function () {
-                    T.hide();
+            var T = this;
+            if (T.length > 1) {
+                T.each(function () {
+                    $(this).ajaxLoading('show');
                 });
             }
+            var data = T.data('ajaxloading');
+            T.show().animate({opacity: 1}, data.s.animationSpeed, data.s.animateEase);
         },
-        updateProgress: function (e) {
+        /**
+         * Hide the loader
+         */
+        hide: function () {
             var T = this;
-//            if (!T.s.showProgress) {
-//                console.warn('Did not set the option showProgress to true');
-//            }
-            if (e.lengthComputable) {
-                var pct = e.loaded / e.total;
-                $('.ajax-loading-progress', T).css({width: 0});
-                $('.ajax-loading-progress', T).css({width: Math.round(pct * 100) + "%"});
-            } else {
-                $('.ajax-loading-progress', T).css({width: 0});
+            if (T.length > 1) {
+                T.each(function () {
+                    $(this).ajaxLoading('hide');
+                });
             }
+            var data = T.data('ajaxloading');
+            T.animate({opacity: 0}, data.s.animateSpeed, data.s.animateEase, function () {
+                T.hide();
+            });
         }
     };
     
-    /**
-     * Exception Object
-     * @param {string} exceptiontype The name of the exception to replace xxx in the string "Uncaught AjaxLoading::xxx - message"
-     * @param {string} message The exception message
-     * @returns {AjaxLoading::Exception}
-     */
-    function ex(exceptiontype, message) {
-        return {
-            name: 'AjaxLoading::' + exceptiontype,
-            level: "Cannot continue",
-            message: message,
-            htmlMessage: message,
-            toString: function() {
-                return ['Error: AjaxLoading::', exceptiontype, ' - ', message].join('');
-            }
-        };
-    }
+    $(function () {
+        // Auto initialise
+        $('.ajaxloading').ajaxLoading();
+    });
 
     $.fn.ajaxLoading = function(methodOrOpts) {
         if (methods[methodOrOpts]) {
             // The first option passed is a method, therefore call this method
+            var aldata = this.data('ajaxloading');
+            if (!aldata) {
+                $.error('InvalidInstanceError: AjaxLoading - Cannot run ' + methodOrOpts + ' on an uninitialized object');
+            }
             return methods[methodOrOpts].apply(this, Array.prototype.slice.call(arguments, 1));
         } else if (Object.prototype.toString.call(methodOrOpts) === '[object Object]' || !methodOrOpts) {
             // The default action is to call the init function
